@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from openai import Completion
+import openai
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report
@@ -9,15 +9,20 @@ import seaborn as sns
 
 # Function to analyze data with OpenAI GPT
 def analyze_data_with_llm(data, openai_api_key):
-    # Leverage GPT to analyze the dataset and suggest ML problems
+    openai.api_key = openai_api_key
+    # Create a system prompt to analyze the data
     prompt = f"Analyze the following data and suggest machine learning problems that can be solved:\n\n{data.head().to_csv()}"
-    response = Completion.create(
-        engine="text-davinci-003",
-        prompt=prompt,
-        max_tokens=500,
-        api_key=openai_api_key
-    )
-    return response.choices[0].text.strip()
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are an expert data scientist."},
+                {"role": "user", "content": prompt}
+            ]
+        )
+        return response['choices'][0]['message']['content'].strip()
+    except Exception as e:
+        raise ValueError(f"Error while querying OpenAI API: {e}")
 
 def main():
     st.title("AI-Powered ML Problem Solver")
@@ -46,7 +51,7 @@ def main():
                 st.write("### Suggested Problems")
                 st.write(suggestions)
             except Exception as e:
-                st.error(f"Error while analyzing data with OpenAI: {e}")
+                st.error(f"Error: {e}")
                 return
         
         # Ask user-specific questions
