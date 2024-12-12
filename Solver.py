@@ -7,9 +7,7 @@ from sklearn.metrics import classification_report
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# OpenAI API Setup
-openai_api_key = "YOUR_OPENAI_API_KEY"
-
+# Function to analyze data with OpenAI GPT
 def analyze_data_with_llm(data, openai_api_key):
     # Leverage GPT to analyze the dataset and suggest ML problems
     prompt = f"Analyze the following data and suggest machine learning problems that can be solved:\n\n{data.head().to_csv()}"
@@ -24,6 +22,14 @@ def analyze_data_with_llm(data, openai_api_key):
 def main():
     st.title("AI-Powered ML Problem Solver")
     
+    # Input for OpenAI API key
+    st.sidebar.header("OpenAI API Key")
+    openai_api_key = st.sidebar.text_input("Enter your OpenAI API key:", type="password")
+    
+    if not openai_api_key:
+        st.warning("Please enter your OpenAI API key to proceed.")
+        return
+    
     # Upload CSV file
     st.sidebar.header("Upload CSV Data")
     uploaded_file = st.sidebar.file_uploader("Upload your dataset", type=["csv"])
@@ -35,10 +41,13 @@ def main():
         
         # Analyze data and identify problems
         with st.spinner("Analyzing data..."):
-            suggestions = analyze_data_with_llm(data, openai_api_key)
-        
-        st.write("### Suggested Problems")
-        st.write(suggestions)
+            try:
+                suggestions = analyze_data_with_llm(data, openai_api_key)
+                st.write("### Suggested Problems")
+                st.write(suggestions)
+            except Exception as e:
+                st.error(f"Error while analyzing data with OpenAI: {e}")
+                return
         
         # Ask user-specific questions
         problem_type = st.selectbox("Select the problem type", ["Regression", "Classification", "Clustering"])
