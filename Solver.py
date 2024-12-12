@@ -86,16 +86,22 @@ def main():
                 plt.title("Feature Importance")
                 st.pyplot(plt.gcf())
                 
+                # Initialize session state for inputs
+                if "user_inputs" not in st.session_state:
+                    st.session_state.user_inputs = {col: "" for col in X.columns}
+                
                 # Allow user to test the model
                 st.write("### Test the Model")
-                input_data = {}
                 for col in X.columns:
-                    value = st.text_input(f"Enter value for {col}:")
-                    if value:
-                        input_data[col] = float(value)  # Convert to float or appropriate data type
+                    st.session_state.user_inputs[col] = st.text_input(
+                        f"Enter value for {col}:", 
+                        value=st.session_state.user_inputs.get(col, "")
+                    )
                 
                 if st.button("Predict"):
-                    if len(input_data) == len(X.columns):
+                    # Ensure all inputs are provided
+                    if all(st.session_state.user_inputs.values()):
+                        input_data = {col: float(val) for col, val in st.session_state.user_inputs.items()}
                         input_df = pd.DataFrame([input_data])
                         prediction = model.predict(input_df)
                         st.success(f"Prediction: {prediction[0]}")
