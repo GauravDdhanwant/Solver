@@ -10,7 +10,6 @@ import seaborn as sns
 # Function to analyze data with OpenAI GPT
 def analyze_data_with_llm(data, openai_api_key):
     openai.api_key = openai_api_key
-    # Create a system prompt to analyze the data
     prompt = f"Analyze the following data and suggest machine learning problems that can be solved:\n\n{data.head().to_csv()}"
     try:
         response = openai.ChatCompletion.create(
@@ -86,6 +85,22 @@ def main():
                 sns.barplot(data=importance, x="Importance", y="Feature")
                 plt.title("Feature Importance")
                 st.pyplot(plt.gcf())
+                
+                # Allow user to test the model
+                st.write("### Test the Model")
+                input_data = {}
+                for col in X.columns:
+                    value = st.text_input(f"Enter value for {col}:")
+                    if value:
+                        input_data[col] = float(value)  # Convert to float or appropriate data type
+                
+                if st.button("Predict"):
+                    if len(input_data) == len(X.columns):
+                        input_df = pd.DataFrame([input_data])
+                        prediction = model.predict(input_df)
+                        st.success(f"Prediction: {prediction[0]}")
+                    else:
+                        st.error("Please provide inputs for all features.")
             else:
                 st.error("Please specify the target column.")
 
